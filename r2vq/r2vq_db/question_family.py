@@ -1,5 +1,5 @@
 import random
-from typing import Tuple, List, Any, Optional
+from typing import Tuple, List, Any, Optional, Set
 
 import attr
 import peewee
@@ -93,7 +93,11 @@ class EllipsisQuestions:
         for event in events:
             rels = query_f.query_relation_by_span(event=event)
             answer.append(
-                tuple(rel.ingre_par for rel in rels if rel.tool_par.lemma == prop)
+                tuple(
+                    rel.ingre_par
+                    for rel in rels
+                    if rel.tool_par and rel.tool_par.lemma == prop
+                )
             )
 
         return question, answer
@@ -110,7 +114,9 @@ class EllipsisQuestions:
             rels = query_f.query_relation_by_span(event=event)
             answer.append(
                 tuple(
-                    rel.ingre_par.lemma for rel in rels if rel.habitat_par.lemma == prop
+                    rel.ingre_par
+                    for rel in rels
+                    if rel.habitat_par and rel.habitat_par.lemma == prop
                 )
             )
 
@@ -137,6 +143,7 @@ class ImplicitObjectQuestions:
                     rel.tool_par
                     for rel in rels
                     if rel.ingre_par.lemma == ingredient
+                    and rel.tool_par
                     and rel.tool_par.label == "HIDDENTOOL"
                 )
             )
@@ -154,9 +161,10 @@ class ImplicitObjectQuestions:
             rels = query_f.query_relation_by_span(event=event)
             answer.append(
                 tuple(
-                    rel.habitat_par.lemma
+                    rel.habitat_par
                     for rel in rels
                     if rel.ingre_par.lemma == ingredient
+                    and rel.habitat_par
                     and rel.habitat_par.label == "HIDDENHABITAT"
                 )
             )

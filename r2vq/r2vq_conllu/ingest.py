@@ -1,4 +1,4 @@
-from typing import Sequence, List
+from typing import Sequence, List, Tuple, Optional, Dict
 
 import conllu
 from conllu import parse_incr
@@ -15,7 +15,7 @@ INGREDIENT = "ingredients"
 STEP = "step"
 
 
-def ingest_r2vq_connlu(conllu_file: str) -> List[Recipe]:
+def ingest_r2vq_connlu(conllu_file: str) -> Tuple[List[Recipe], List[conllu.TokenList]]:
     r2vq_conllu_fields = list(conllu.parser.DEFAULT_FIELDS)
     r2vq_fields = ["entity", "participant_of", "result_of", "hidden", "coreference"]
     r2vq_conllu_fields.extend(r2vq_fields)
@@ -77,7 +77,11 @@ def ingest_r2vq_connlu(conllu_file: str) -> List[Recipe]:
             )
         )
     conllu_f.close()
-    return recipes
+    with open(conllu_file, "r", encoding="utf-8") as f:
+        sentences = list(parse_incr(
+            f, fields=r2vq_conllu_fields, field_parsers=custom_parsers
+        ))
+    return recipes, sentences
 
 
 def write_r2vq_conllu(
@@ -102,7 +106,7 @@ def test_recipe(recipe: Recipe) -> None:
 
 
 if __name__ == "__main__":
-    recipes = ingest_r2vq_connlu(
+    recipes, sentences = ingest_r2vq_connlu(
         "../r2vq_conllu_data/trial_recipes.conllu.annotation.csv"
     )
     test_recipe(recipes[0])

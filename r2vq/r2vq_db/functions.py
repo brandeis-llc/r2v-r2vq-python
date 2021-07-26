@@ -126,7 +126,7 @@ class FilterFunctions:
 
 
 if __name__ == "__main__":
-    recipes = ingest_r2vq_connlu(
+    recipes, _ = ingest_r2vq_connlu(
         "../r2vq_conllu_data/trial_recipes.conllu.annotation.csv"
     )
     basic_f = BasicFunctions()
