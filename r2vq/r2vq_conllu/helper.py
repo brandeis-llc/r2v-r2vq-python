@@ -24,7 +24,7 @@ def _decode_bio(sentence: Sentence) -> List[Span]:
             curr_idx = idx + 1
             spans.append(
                 Span.from_entity(
-                    "::".join([sentence.id, str(start_idx)]),
+                    "::".join([sentence.id, str(start_idx).zfill(3)]),
                     sentence,
                     start_idx,
                     idx + 1,
@@ -42,7 +42,7 @@ def _decode_hidden(sentence: Sentence) -> List[Span]:
         if hidden:
             for k in hidden:
                 for hi, v in enumerate(hidden[k]):
-                    span_id = "::".join([sentence.id, "hidden", str(i), k, str(hi)])
+                    span_id = "::".join([sentence.id, "hidden", str(i).zfill(2), k, str(hi).zfill(2)])
                     spans.append(Span.from_hidden(span_id, sentence, i, k, v))
     return spans
 
