@@ -37,9 +37,11 @@ filter_f = FilterFunctions()
 
 @attr.s()
 class CardinalityQuestions:
+    # TODO: fuzzy match?
     q_template1: str = "How many [PROP] are used?"
     q_template2: str = "How many times the [PROP] is used?"
     q_template3: str = "Are there more [PROP]?"
+    q_template4: str = "How many steps does it take to process the [INGRE]?"  # cooking event
 
     def question_answer1(
         self, prop: str, prop_label: str, rid: str = ""
@@ -62,6 +64,11 @@ class CardinalityQuestions:
         answer = basic_f.count_span(prop, prop_label, unique=True, rid=rid) > 1
         return question, answer
 
+    def question_answer4(self, ingre: str, rid: str = "") -> Tuple[str, int]:
+        question = self.q_template4.replace("[INGRE]", ingre)
+
+        return question, len(query_f.query_ingredient(ingre, rid=rid))
+
 
 @attr.s()
 class EllipsisQuestions:
@@ -78,7 +85,7 @@ class EllipsisQuestions:
         answer = []
         for event in events:
             answer.append(
-                tuple(i.ingre_par for i in query_f.query_relation_by_span(event=event))
+                tuple(i.ingre_par for i in query_f.query_relation_by_span(event=event) if i.ingre_par and i.ingre_par.label.startswith("HIDDEN"))
             )
         return question, answer
 
@@ -97,6 +104,7 @@ class EllipsisQuestions:
                     rel.ingre_par
                     for rel in rels
                     if rel.tool_par and rel.tool_par.lemma == prop
+                    and rel.ingre_par.label.startswith("HIDDEN")
                 )
             )
 
@@ -117,6 +125,7 @@ class EllipsisQuestions:
                     rel.ingre_par
                     for rel in rels
                     if rel.habitat_par and rel.habitat_par.lemma == prop
+                    and rel.ingre_par.label.startswith("HIDDEN")
                 )
             )
 
@@ -216,6 +225,7 @@ if __name__ == "__main__":
     print(cq.question_answer1("spatula", "TOOL"))
     print(cq.question_answer2("spatula", "TOOL"))
     print(cq.question_answer3("spatula", "TOOL"))
+    print(cq.question_answer4("pancetta"))
     print(eq.question_answer1("toss"))
     print(eq.question_answer2("saute", "spatula"))
     print(eq.question_answer3("add", "pan"))
