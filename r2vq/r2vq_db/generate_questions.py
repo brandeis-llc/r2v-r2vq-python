@@ -32,7 +32,9 @@ def format_qa_pair(question, answer: Union[int, bool, List]):
     return f"{question}\t{answer}"
 
 
-def generate_cq(tool_names: Set[str], habitat_names: Set[str], ingre_names: Set[str], rid: str):
+def generate_cq(
+    tool_names: Set[str], habitat_names: Set[str], ingre_names: Set[str], rid: str
+):
     questions = []
     for tool in random.sample(tool_names, min(2, len(tool_names))):
         questions.append(list(cq.question_answer1(tool, "TOOL", rid)))
@@ -51,7 +53,7 @@ def generate_cq(tool_names: Set[str], habitat_names: Set[str], ingre_names: Set[
 
 
 def generate_eq(
-        event_names: Set[str], tool_names: Set[str], habitat_names: Set[str], rid: str
+    event_names: Set[str], tool_names: Set[str], habitat_names: Set[str], rid: str
 ):
     questions = []
     for verb in event_names:
@@ -142,5 +144,7 @@ if __name__ == "__main__":
         questions[rid]["iq"] = generate_iq(event_names, rid)
         questions[rid]["oq"] = generate_oq(ingre_names, rid)
 
-    write_qa_conllu("../r2vq_conllu_data/trial_recipes.conllu.annotation.csv",
-                    "../r2vq_conllu_data/trial_recipes.conllu.annotation.qa.csv")
+    write_qa_conllu(
+        "../r2vq_conllu_data/trial_recipes.conllu.annotation.csv",
+        "../r2vq_conllu_data/trial_recipes.conllu.annotation.qa.csv",
+    )

@@ -30,6 +30,12 @@ def get_past_participle(verb: str) -> str:
     return past_p
 
 
+def get_gerund(verb: str) -> str:
+    first, *toks = verb.split()
+    ge_p = " ".join([getInflection(first, tag="VBG")[0]] + toks)
+    return ge_p
+
+
 basic_f = BasicFunctions()
 query_f = QueryFunctions()
 filter_f = FilterFunctions()
@@ -41,7 +47,9 @@ class CardinalityQuestions:
     q_template1: str = "How many [PROP] are used?"
     q_template2: str = "How many times the [PROP] is used?"
     q_template3: str = "Are there more [PROP]?"
-    q_template4: str = "How many steps does it take to process the [INGRE]?"  # cooking event
+    q_template4: str = (
+        "How many steps does it take to process the [INGRE]?"  # cooking event
+    )
 
     def question_answer1(
         self, prop: str, prop_label: str, rid: str = ""
@@ -85,7 +93,11 @@ class EllipsisQuestions:
         answer = []
         for event in events:
             answer.append(
-                tuple(i.ingre_par for i in query_f.query_relation_by_span(event=event) if i.ingre_par and i.ingre_par.label.startswith("HIDDEN"))
+                tuple(
+                    i.ingre_par
+                    for i in query_f.query_relation_by_span(event=event)
+                    if i.ingre_par and i.ingre_par.label.startswith("HIDDEN")
+                )
             )
         return question, answer
 
@@ -103,7 +115,8 @@ class EllipsisQuestions:
                 tuple(
                     rel.ingre_par
                     for rel in rels
-                    if rel.tool_par and rel.tool_par.lemma == prop
+                    if rel.tool_par
+                    and rel.tool_par.lemma == prop
                     and rel.ingre_par.label.startswith("HIDDEN")
                 )
             )
@@ -124,7 +137,8 @@ class EllipsisQuestions:
                 tuple(
                     rel.ingre_par
                     for rel in rels
-                    if rel.habitat_par and rel.habitat_par.lemma == prop
+                    if rel.habitat_par
+                    and rel.habitat_par.lemma == prop
                     and rel.ingre_par.label.startswith("HIDDEN")
                 )
             )
@@ -217,11 +231,35 @@ class ObjLifeSpanQuestions:
         return self.q_template2, None
 
 
+@attr.s()
+class EventOrderingQuestions:
+    q_template1: str = "[EVENT1] and [EVENT2], which comes first?"
+
+    def question_answer1(self, rel_id1: int, rel_id2: int) -> Tuple[str, str]:
+        rel1 = basic_f.query_relation_by_id(rel_id1)
+        rel2 = basic_f.query_relation_by_id(rel_id2)
+        answer = (
+            "the first event"
+            if basic_f.compare_order(rel1, rel2)
+            else "the second event"
+        )
+        rel1_string = f"{get_gerund(rel1.event.lemma)} {rel1.ingre_par.lemma}"
+        rel2_string = f"{get_gerund(rel2.event.lemma)} {rel2.ingre_par.lemma}"
+        if rel1.tool_par:
+            rel1_string += f" with the {rel1.tool_par.lemma}"
+        if rel2.tool_par:
+            rel2_string += f" with the {rel2.tool_par.lemma}"
+        question = self.q_template1.replace("[EVENT1]", rel1_string)
+        question = question.replace("[EVENT2]", rel2_string)
+        return question.capitalize(), answer
+
+
 if __name__ == "__main__":
     cq = CardinalityQuestions()
     eq = EllipsisQuestions()
     iq = ImplicitObjectQuestions()
     oq = ObjLifeSpanQuestions()
+    eoq = EventOrderingQuestions()
     print(cq.question_answer1("spatula", "TOOL"))
     print(cq.question_answer2("spatula", "TOOL"))
     print(cq.question_answer3("spatula", "TOOL"))
@@ -233,3 +271,5 @@ if __name__ == "__main__":
     print(iq.question_answer2("stir", "pancetta"))
     print(oq.question_answer1("pasta"))
     print(oq.question_answer2("asparagus"))
+    print(eoq.question_answer1(2, 3))
+    print(eoq.question_answer1(7, 4))

@@ -17,6 +17,10 @@ class BasicFunctions:
         return Span.get_by_id(span_id)
 
     @db.connection_context()
+    def query_relation_by_id(self, rel_id: Union[int, str]) -> Relation:
+        return Relation.get_by_id(rel_id)
+
+    @db.connection_context()
     def query_span(self, label_suffix: str = "", rid: str = "") -> peewee.ModelSelect:
         query = Span.select().where(
             (Span.label.endswith(label_suffix)) & (Span.uid.startswith(rid))
@@ -41,11 +45,11 @@ class BasicFunctions:
         return self.count_span(name, label_suffix, False, rid) > 0
 
     @staticmethod
-    def compare_order(rel1: RecipeRel, rel2: RecipeRel) -> bool:
+    def compare_order(rel1: Relation, rel2: Relation) -> bool:
         assert (
-            rel2.event.id != rel1.event.id
-        ), f"relations have the same event! ({rel1.event.text}, {rel1.event.id})"
-        return rel2.event.id > rel1.event.id
+            rel2.event.uid != rel1.event.uid
+        ), f"relations have the same event! ({rel1.event.lemma}, {rel1.event.uid})"
+        return rel2.event.uid > rel1.event.uid
 
 
 @attr.s()
@@ -143,7 +147,12 @@ if __name__ == "__main__":
     print(list(rels)[0].tool_par)
     print("fddfd")
     rels = recipes[0].relations
-    print(basic_f.compare_order(rels[5], rels[6]))
+    print(
+        basic_f.compare_order(
+            basic_f.query_relation_by_id("5"), basic_f.query_relation_by_id("2")
+        )
+    )
     fils = filter_f.filter_ingredient("explicit")
     print(list(fils))
     print(basic_f.query_span_by_id("f-QTSTCCSV::step02::sent01::000").lemma)
+    print(basic_f.query_relation_by_id("1").event)

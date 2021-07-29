@@ -13,7 +13,6 @@ class BaseModel(Model):
 
 
 class Span(BaseModel):
-    # TODO: maybe also add text field here. "slotted spoon" vs. "slot spoon"
     uid = CharField(primary_key=True)
     lemma = CharField()
     label = CharField()
