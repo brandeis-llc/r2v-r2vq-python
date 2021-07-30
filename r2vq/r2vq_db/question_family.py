@@ -48,7 +48,7 @@ class CardinalityQuestions:
     q_template2: str = "How many times the [PROP] is used?"
     q_template3: str = "Are there more [PROP]?"
     q_template4: str = (
-        "How many steps does it take to process the [INGRE]?"  # cooking event
+        "How many actions does it take to process the [INGRE]?"  # cooking event
     )
 
     def question_answer1(
@@ -96,7 +96,7 @@ class EllipsisQuestions:
                 tuple(
                     i.ingre_par
                     for i in query_f.query_relation_by_span(event=event)
-                    if i.ingre_par and i.ingre_par.label.startswith("HIDDEN")
+                    if i.ingre_par and i.ingre_par.label.startswith("DROP")
                 )
             )
         return question, answer
@@ -117,7 +117,7 @@ class EllipsisQuestions:
                     for rel in rels
                     if rel.tool_par
                     and rel.tool_par.lemma == prop
-                    and rel.ingre_par.label.startswith("HIDDEN")
+                    and rel.ingre_par.label.startswith("DROP")
                 )
             )
 
@@ -139,7 +139,7 @@ class EllipsisQuestions:
                     for rel in rels
                     if rel.habitat_par
                     and rel.habitat_par.lemma == prop
-                    and rel.ingre_par.label.startswith("HIDDEN")
+                    and rel.ingre_par.label.startswith("DROP")
                 )
             )
 
@@ -271,5 +271,5 @@ if __name__ == "__main__":
     print(iq.question_answer2("stir", "pancetta"))
     print(oq.question_answer1("pasta"))
     print(oq.question_answer2("asparagus"))
-    print(eoq.question_answer1(2, 3))
+    print(eoq.question_answer1(2, 6))
     print(eoq.question_answer1(7, 4))

@@ -47,9 +47,9 @@ class BasicFunctions:
     @staticmethod
     def compare_order(rel1: Relation, rel2: Relation) -> bool:
         assert (
-            rel2.event.uid != rel1.event.uid
-        ), f"relations have the same event! ({rel1.event.lemma}, {rel1.event.uid})"
-        return rel2.event.uid > rel1.event.uid
+            rel2.event_verb.uid != rel1.event_verb.uid
+        ), f"relations have the same event! ({rel1.event_verb.lemma}, {rel1.event_verb.uid})"
+        return rel2.event_verb.uid > rel1.event_verb.uid
 
 
 @attr.s()
@@ -131,28 +131,27 @@ class FilterFunctions:
 
 if __name__ == "__main__":
     recipes, _ = ingest_r2vq_connlu(
-        "../r2vq_conllu_data/trial_recipes.conllu.annotation.csv"
+        "../r2vq_conllu_data/trial_recipes.conllu_ALL_formatted.csv"
     )
     basic_f = BasicFunctions()
     query_f = QueryFunctions()
     filter_f = FilterFunctions()
 
-    c = basic_f.count_span("white wine", "INGREDIENT", False)
+    c = basic_f.count_span("white wine", "INGREDIENT", True)
     print(c)
     d = basic_f.exist_span("white wine", "INGREDIENT")
     print(d)
     pancettas = query_f.query_habitat("large pot")
     print([p.coreference for p in pancettas])
-    rels = query_f.query_relation_by_span(event="f-QTSTCCSV::step05::sent01::000")
-    print(list(rels)[0].tool_par)
-    print("fddfd")
-    rels = recipes[0].relations
+    rels = query_f.query_relation_by_span(event="f-QTSTCCSV::step05::sent01::000::CRL")
+    print(list(rels)[0].ingre_par)
+    print("======================")
     print(
         basic_f.compare_order(
-            basic_f.query_relation_by_id("5"), basic_f.query_relation_by_id("2")
+            basic_f.query_relation_by_id("6"), basic_f.query_relation_by_id("3")
         )
     )
     fils = filter_f.filter_ingredient("explicit")
     print(list(fils))
-    print(basic_f.query_span_by_id("f-QTSTCCSV::step02::sent01::000").lemma)
+    print(basic_f.query_span_by_id("f-QTSTCCSV::step02::sent01::000::CRL").lemma)
     print(basic_f.query_relation_by_id("1").event)

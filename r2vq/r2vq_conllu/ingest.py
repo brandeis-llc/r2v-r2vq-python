@@ -179,7 +179,7 @@ def test_recipe(recipe: Recipe) -> None:
     # print(len(predicates))
     events = recipe.cooking_events
     for e in events:
-        print(e.predicate)
+        print(e.predicate.__dict__["head"].id)
 
 
 if __name__ == "__main__":

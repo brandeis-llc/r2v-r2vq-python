@@ -127,7 +127,7 @@ def write_qa_conllu(in_file, out_file):
 
 if __name__ == "__main__":
     recipes, sentences = ingest_r2vq_connlu(
-        "../r2vq_conllu_data/trial_recipes.conllu.annotation.csv"
+        "../r2vq_conllu_data/trial_recipes.conllu_ALL_formatted.csv"
     )
 
     questions = defaultdict(dict)
@@ -146,5 +146,5 @@ if __name__ == "__main__":
 
     write_qa_conllu(
         "../r2vq_conllu_data/trial_recipes.conllu.annotation.csv",
-        "../r2vq_conllu_data/trial_recipes.conllu.annotation.qa.csv",
+        "../r2vq_conllu_data/trial_recipes.conllu.annotation.qa22.csv",
     )

@@ -146,6 +146,10 @@ class Argument:
 
         return cls(span_id, sent, start, end, label, text)
 
+    @property
+    def lemma(self):
+        return self.text.lower()
+
     def __repr__(self):
         return self.text
 
@@ -327,6 +331,10 @@ class EventVerb:
 
     def __repr__(self):
         return self.text
+
+    @property
+    def lemma(self):
+        return self.text.lower()
 
 
 @attr.s(frozen=False, repr=True)
