@@ -328,13 +328,10 @@ class EventVerb:
     start_pos: int = attr.ib()
     end_pos: int = attr.ib()
     text: str = attr.ib()
+    lemma: str = attr.ib()
 
     def __repr__(self):
         return self.text
-
-    @property
-    def lemma(self):
-        return self.text.lower()
 
 
 @attr.s(frozen=False, repr=True)

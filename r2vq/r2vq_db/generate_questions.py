@@ -4,14 +4,16 @@ from collections import defaultdict
 from typing import Sequence, Set, Union, List
 
 from r2vq_conllu.ingest import ingest_r2vq_connlu
+from r2vq_conllu.data import CookingEvent
 from r2vq_db.functions import BasicFunctions, FilterFunctions, QueryFunctions
 from r2vq_db.question_family import (
     CardinalityQuestions,
     EllipsisQuestions,
     ImplicitObjectQuestions,
     ObjLifeSpanQuestions,
+    EventOrderingQuestions,
 )
-from r2vq_db.models import Span
+from r2vq_db.models import Span, Relation
 
 basic_f = BasicFunctions()
 query_f = QueryFunctions()
@@ -20,16 +22,21 @@ cq = CardinalityQuestions()
 eq = EllipsisQuestions()
 iq = ImplicitObjectQuestions()
 oq = ObjLifeSpanQuestions()
+eoq = EventOrderingQuestions()
 
 
 def get_answer_id(answers: Sequence[Sequence[Span]]) -> Sequence[Sequence[str]]:
     return [[e.uid for e in answer if e] for answer in answers if answer]
 
 
+def get_answer_lemma(answers: Sequence[Sequence[Span]]) -> Sequence[Sequence[str]]:
+    return [[e.lemma for e in answer if e] for answer in answers if answer]
+
+
 def format_qa_pair(question, answer: Union[int, bool, List]):
     if not isinstance(answer, (int, bool)):
-        answer = "|".join([",".join(a) for a in answer])
-    return f"{question}\t{answer}"
+        answer = " | ".join([", ".join(set(a)) for a in answer])
+    return question, answer
 
 
 def generate_cq(
@@ -59,19 +66,19 @@ def generate_eq(
     for verb in event_names:
         ques, ans = eq.question_answer1(verb, rid)
         if list(itertools.chain.from_iterable(ans)):
-            questions.append([ques, get_answer_id(ans)])
+            questions.append([ques, get_answer_lemma(ans)])
 
     for v in event_names:
         for p in tool_names:
             ques, ans = eq.question_answer2(v, p, rid)
             if list(itertools.chain.from_iterable(ans)):
-                questions.append([ques, get_answer_id(ans)])
+                questions.append([ques, get_answer_lemma(ans)])
 
     for v in event_names:
         for p in habitat_names:
             ques, ans = eq.question_answer3(v, p, rid)
             if list(itertools.chain.from_iterable(ans)):
-                questions.append([ques, get_answer_id(ans)])
+                questions.append([ques, get_answer_lemma(ans)])
     return questions
 
 
@@ -90,13 +97,13 @@ def generate_iq(event_names: Set[str], rid: str):
                     ingre,
                 )
                 if list(itertools.chain.from_iterable(ans)):
-                    questions.append([ques, get_answer_id(ans)])
+                    questions.append([ques, get_answer_lemma(ans)])
                 ques, ans = iq.question_answer2(
                     eve,
                     ingre,
                 )
                 if list(itertools.chain.from_iterable(ans)):
-                    questions.append([ques, get_answer_id(ans)])
+                    questions.append([ques, get_answer_lemma(ans)])
     return questions
 
 
@@ -105,11 +112,107 @@ def generate_oq(ingre_names: Set[str], rid: str):
     for ingre in ingre_names:
         ques, ans = oq.question_answer1(ingre, rid)
         if list(itertools.chain.from_iterable(ans)):
-            questions.append([ques, get_answer_id(ans)])
+            questions.append([ques, get_answer_lemma(ans)])
         ques, ans = oq.question_answer2(ingre, rid)
         if ans is not None:
             questions.append([ques, ans])
     return questions
+
+
+def generate_eoq(idx_pair):
+    questions = []
+    for i1, i2 in idx_pair:
+        ques, ans = eoq.question_answer1(i1, i2)
+
+        questions.append([ques, ans])
+    return questions
+
+
+def generate_tq(cooking_events: List[CookingEvent]):
+    q_template1: str = "How long should you [RELATION]?"
+    pairs = []
+    for ce in cooking_events:
+        pred = ce.predicate
+        rel = ce.relation
+        questions = []
+        if pred:
+            if pred.time:
+                answer = pred.time.lemma
+                if pred.patient:
+                    text = f"{ce.verb.lemma} {pred.patient.lemma}"
+                    questions.append(q_template1.replace("[RELATION]", text))
+
+                if rel and rel.ingre_participants:
+                    for ingre in rel.ingre_participants:
+                        text = f"{ce.verb.lemma} the {ingre.lemma}"
+                        questions.append(q_template1.replace("[RELATION]", text))
+                pairs.append((questions, answer))
+    return pairs
+
+
+def generate_aq(cooking_events: List[CookingEvent]):
+    q_template1: str = "How would you [RELATION]?"
+    pairs = []
+    for ce in cooking_events:
+        pred = ce.predicate
+        rel = ce.relation
+        questions = []
+        if pred and pred.attribute:
+            answer = pred.attribute.lemma
+            if pred.patient:
+                # TODO: could also be theme?
+                text = f"{ce.verb.lemma} {pred.patient.lemma}"
+                questions.append(q_template1.replace("[RELATION]", text))
+
+            if rel and rel.ingre_participants:
+                for ingre in rel.ingre_participants:
+                    text = f"{ce.verb.lemma} the {ingre.lemma}"
+                    questions.append(q_template1.replace("[RELATION]", text))
+            pairs.append((questions, answer))
+    return pairs
+
+
+def generate_instrument_q(cooking_events: List[CookingEvent]):
+    q_template1: str = "What was used to [RELATION]?"
+    pairs = []
+    for ce in cooking_events:
+        pred = ce.predicate
+        rel = ce.relation
+        questions = []
+        if pred and pred.instrument:
+            answer = pred.instrument.lemma
+            if rel and rel.tool_participants:
+                if rel.tool_participants[0].lemma in answer:
+                    answer = rel.tool_participants[0].lemma
+            if pred.patient:
+                # TODO: could also be theme?
+                text = f"{ce.verb.lemma} {pred.patient.lemma}"
+                questions.append(q_template1.replace("[RELATION]", text))
+
+            pairs.append((questions, answer))
+    return pairs
+
+
+def generate_result_q(cooking_events: List[CookingEvent]):
+    q_template1: str = "To what extent should you [RELATION]?"
+    pairs = []
+    for ce in cooking_events:
+        pred = ce.predicate
+        rel = ce.relation
+        questions = []
+        if pred and pred.result:
+            answer = pred.result.lemma
+            if pred.patient:
+                # TODO: could also be theme?
+                text = f"{ce.verb.lemma} {pred.patient.lemma}"
+                questions.append(q_template1.replace("[RELATION]", text))
+
+            if rel and rel.ingre_participants:
+                for ingre in rel.ingre_participants:
+                    text = f"{ce.verb.lemma} the {ingre.lemma}"
+                    questions.append(q_template1.replace("[RELATION]", text))
+            pairs.append((questions, answer))
+    return pairs
 
 
 def write_qa_conllu(in_file, out_file):
@@ -122,17 +225,54 @@ def write_qa_conllu(in_file, out_file):
                 ques_families = questions[rid]
                 for k in ques_families:
                     for i, qa in enumerate(ques_families[k], 1):
-                        f_out.write(f"{k}{i} = {format_qa_pair(*qa)}\n")
+                        ques, ans = format_qa_pair(*qa)
+                        f_out.write(f"# question {k}{i} = {ques}\n")
+                        f_out.write(f"# answer {k}{i} = {ans}\n")
+                for i, (qs, ans) in enumerate(attr_pairs[rid]):
+                    for j, q in enumerate(qs):
+                        f_out.write(f"# question attrq{i}{j} = {q}\n")
+                        f_out.write(f"# answer attrq{i}{j} = {ans}\n")
+                for i, (qs, ans) in enumerate(temporal_pairs[rid]):
+                    for j, q in enumerate(qs):
+                        f_out.write(f"# question tempq{i}{j} = {q}\n")
+                        f_out.write(f"# answer tempq{i}{j} = {ans}\n")
+                for i, (qs, ans) in enumerate(instru_pairs[rid]):
+                    for j, q in enumerate(qs):
+                        f_out.write(f"# question insq{i}{j} = {q}\n")
+                        f_out.write(f"# answer insq{i}{j} = {ans}\n")
+                for i, (qs, ans) in enumerate(result_pairs[rid]):
+                    for j, q in enumerate(qs):
+                        f_out.write(f"# question resq{i}{j} = {q}\n")
+                        f_out.write(f"# answer resq{i}{j} = {ans}\n")
 
 
 if __name__ == "__main__":
     recipes, sentences = ingest_r2vq_connlu(
-        "../r2vq_conllu_data/trial_recipes.conllu_ALL_formatted.csv"
+        "../r2vq_conllu_data/trial_all_formatted_corrected.csv"
     )
 
+    order_pairs = {
+        "f-QTSTCCSV": [[2, 6], [7, 4], [26, 29], [17, 10]],
+        "f-PNQMMKPD": [[34, 39], [55, 48], [57, 59], [46, 39]],
+        "r-769": [[61, 64], [71, 76], [80, 66], [73, 63]],
+        "f-RMMPHNZR": [[93, 89], [95, 99], [102, 92]],
+        "r-4455": [[104, 108], [112, 116]],
+    }
     questions = defaultdict(dict)
+    temporal_pairs = {}
+    attr_pairs = {}
+    instru_pairs = {}
+    result_pairs = {}
     for recipe in recipes:
         rid = recipe.r_id
+
+        temporal_pairs[rid] = generate_tq(recipe.cooking_events)
+
+        attr_pairs[rid] = generate_aq(recipe.cooking_events)
+
+        instru_pairs[rid] = generate_instrument_q(recipe.cooking_events)
+
+        result_pairs[rid] = generate_result_q(recipe.cooking_events)
 
         tool_names = set(p.lemma for p in basic_f.query_span("TOOL", rid))
         habitat_names = set(p.lemma for p in basic_f.query_span("HABITAT", rid))
@@ -143,8 +283,9 @@ if __name__ == "__main__":
         questions[rid]["eq"] = generate_eq(event_names, tool_names, habitat_names, rid)
         questions[rid]["iq"] = generate_iq(event_names, rid)
         questions[rid]["oq"] = generate_oq(ingre_names, rid)
+        questions[rid]["eoq"] = generate_eoq(order_pairs[rid])
 
     write_qa_conllu(
-        "../r2vq_conllu_data/trial_recipes.conllu.annotation.csv",
-        "../r2vq_conllu_data/trial_recipes.conllu.annotation.qa22.csv",
+        "../r2vq_conllu_data/trial_all_formatted_corrected.csv",
+        "../r2vq_conllu_data/trial_recipes.conllu.annotation.qa66.csv",
     )

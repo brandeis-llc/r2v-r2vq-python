@@ -65,6 +65,10 @@ class QueryFunctions:
         return self.bf.query_span("EVENT", rid).where((Span.lemma == name))
 
     @db.connection_context()
+    def query_event_verb(self, name: str, rid: str = "") -> peewee.ModelSelect:
+        return self.bf.query_span("EventVerb", rid).where((Span.lemma == name))
+
+    @db.connection_context()
     def query_tool(self, name: str, rid: str = "") -> peewee.ModelSelect:
         return self.bf.query_span("TOOL", rid).where((Span.lemma == name))
 
@@ -80,9 +84,10 @@ class QueryFunctions:
         tool: Union[str, Span] = None,
         habitat: Union[str, Span] = None,
         result: Union[str, Span] = None,
+        event_verb: Union[str, Span] = None,
         rid: str = "",
     ) -> peewee.ModelSelect:
-        query = Relation.select().where((Relation.event.startswith(rid)))
+        query = Relation.select().where((Relation.event_verb.startswith(rid)))
         if event:
             query = query.where((Relation.event == event))
         if ingre:
@@ -93,6 +98,8 @@ class QueryFunctions:
             query = query.where((Relation.habitat_par == habitat))
         if result:
             query = query.where((Relation.ingre_res == result))
+        if event_verb:
+            query = query.where((Relation.event_verb == event_verb))
 
         return query
 

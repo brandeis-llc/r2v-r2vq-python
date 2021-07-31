@@ -171,7 +171,7 @@ def _get_cooking_events(
         if tok.entity == "B-EVENT" and tok.predicate:
             verb = rels_dict[tok_id].event
             verb_obj = EventVerb(
-                tok_id, verb.sent, verb.start_pos, verb.end_pos, verb.text
+                tok_id, verb.sent, verb.start_pos, verb.end_pos, verb.text, verb.lemma
             )
             c_events.append(
                 CookingEvent(verb_obj, pred_dict[tok_id], rels_dict[tok_id])
@@ -179,13 +179,13 @@ def _get_cooking_events(
         elif tok.entity == "B-EVENT":
             verb = rels_dict[tok_id].event
             verb_obj = EventVerb(
-                tok_id, verb.sent, verb.start_pos, verb.end_pos, verb.text
+                tok_id, verb.sent, verb.start_pos, verb.end_pos, verb.text, verb.lemma
             )
             c_events.append(CookingEvent(verb_obj, None, rels_dict[tok_id]))
         elif tok.predicate:
             verb = pred_dict[tok_id].head
             verb_obj = EventVerb(
-                tok_id, verb.sent, verb.start_pos, verb.end_pos, verb.text
+                tok_id, verb.sent, verb.start_pos, verb.end_pos, verb.text, verb.lemma
             )
             c_events.append(CookingEvent(verb_obj, pred_dict[tok_id], None))
     return c_events

@@ -25,10 +25,44 @@ from r2vq_conllu.helper import (
     _get_cooking_events,
     _parse_hidden_value,
     _parse_coref_value,
+    clean_conllu_empty_line,
 )
 
 INGREDIENT = "ingredients"
 STEP = "step"
+
+
+# def ingest_r2vq_connlu2(conllu_file: str) -> Tuple[List[Recipe], List[conllu.TokenList]]:
+#     # column names
+#     r2vq_conllu_fields = [
+#         "id",
+#         "form",
+#         "lemma",
+#         "upos",
+#         "entity",
+#         "participant_of",
+#         "result_of",
+#         "hidden",
+#         "coreference",
+#         "predicate",
+#         "arg_pred1",
+#         "arg_pred2",
+#         "arg_pred3",
+#         "arg_pred4",
+#         "arg_pred5",
+#     ]
+#
+#     conllu_f = open(conllu_file, "r", encoding="utf-8")
+#     sentences = parse_incr(
+#         conllu_f, fields=r2vq_conllu_fields
+#     )
+#     sents = []
+#     for sent in sentences:
+#         for i, tok in enumerate(sent):
+#             for f in r2vq_conllu_fields:
+#                 sent[i].setdefault(f, "_")
+#         sents.append(sent)
+#     return sents
 
 
 def ingest_r2vq_connlu(conllu_file: str) -> Tuple[List[Recipe], List[conllu.TokenList]]:
@@ -179,11 +213,21 @@ def test_recipe(recipe: Recipe) -> None:
     # print(len(predicates))
     events = recipe.cooking_events
     for e in events:
-        print(e.predicate.__dict__["head"].id)
+        print(e.predicate)
 
 
 if __name__ == "__main__":
     recipes, sentences = ingest_r2vq_connlu(
-        "../r2vq_conllu_data/trial_recipes.conllu_ALL_formatted.csv"
+        "../r2vq_conllu_data/trial_all_formatted_corrected.csv"
     )
-    test_recipe(recipes[0])
+    test_recipe(recipes[1])
+    # wf = open("../r2vq_conllu_data/trial_all_formatted2.csv", "w")
+    #
+    # with open("../r2vq_conllu_data/trial_all_formatted.csv", "r") as f:
+    #     for line in f:
+    #         if line.strip():
+    #             cols = line.strip().split("\t")
+    #             cols = [c if c else "_" for c in cols]
+    #             print("\t".join(cols), file=wf)
+    #         else:
+    #             print(line.strip(), file=wf)

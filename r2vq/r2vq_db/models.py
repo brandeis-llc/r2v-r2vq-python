@@ -38,4 +38,3 @@ class Relation(BaseModel):
     extent = ForeignKeyField(Span, null=True)
     purpose = ForeignKeyField(Span, null=True)
     co_patient = ForeignKeyField(Span, null=True)
-

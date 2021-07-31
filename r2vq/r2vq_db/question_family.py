@@ -117,6 +117,7 @@ class EllipsisQuestions:
                     for rel in rels
                     if rel.tool_par
                     and rel.tool_par.lemma == prop
+                    and rel.ingre_par
                     and rel.ingre_par.label.startswith("DROP")
                 )
             )
@@ -139,6 +140,7 @@ class EllipsisQuestions:
                     for rel in rels
                     if rel.habitat_par
                     and rel.habitat_par.lemma == prop
+                    and rel.ingre_par
                     and rel.ingre_par.label.startswith("DROP")
                 )
             )
@@ -165,7 +167,8 @@ class ImplicitObjectQuestions:
                 tuple(
                     rel.tool_par
                     for rel in rels
-                    if rel.ingre_par.lemma == ingredient
+                    if rel.ingre_par
+                    and rel.ingre_par.lemma == ingredient
                     and rel.tool_par
                     and rel.tool_par.label == "HIDDENTOOL"
                 )
@@ -186,7 +189,8 @@ class ImplicitObjectQuestions:
                 tuple(
                     rel.habitat_par
                     for rel in rels
-                    if rel.ingre_par.lemma == ingredient
+                    if rel.ingre_par
+                    and rel.ingre_par.lemma == ingredient
                     and rel.habitat_par
                     and rel.habitat_par.label == "HIDDENHABITAT"
                 )
@@ -235,9 +239,13 @@ class ObjLifeSpanQuestions:
 class EventOrderingQuestions:
     q_template1: str = "[EVENT1] and [EVENT2], which comes first?"
 
-    def question_answer1(self, rel_id1: int, rel_id2: int) -> Tuple[str, str]:
+    def question_answer1(
+        self, rel_id1: int, rel_id2: int
+    ) -> Tuple[str, List[Tuple[str]]]:
         rel1 = basic_f.query_relation_by_id(rel_id1)
         rel2 = basic_f.query_relation_by_id(rel_id2)
+        if rel1.event.uid.split("::", 1)[0] != rel2.event.uid.split("::", 1)[0]:
+            raise ValueError("Relations from different recipes are not comparable!")
         answer = (
             "the first event"
             if basic_f.compare_order(rel1, rel2)
@@ -251,7 +259,28 @@ class EventOrderingQuestions:
             rel2_string += f" with the {rel2.tool_par.lemma}"
         question = self.q_template1.replace("[EVENT1]", rel1_string)
         question = question.replace("[EVENT2]", rel2_string)
-        return question.capitalize(), answer
+        return question.capitalize(), [(answer,)]
+
+
+@attr.s()
+class TemporalQuestions:
+    q_template1: str = "How long should you [RELATION]?"
+
+    def question_answer1(self, verb: str, ingredient: str, rid: str = ""):
+        event_verbs = list(query_f.query_event_verb(verb, rid))
+        question = self.q_template1.replace("[RELATION]", f"{verb} the {ingredient}")
+        answer = []
+        for ev in event_verbs:
+            rels = query_f.query_relation_by_span(event_verb=ev, rid=rid)
+
+            answer.append(
+                tuple(
+                    rel.time.lemma
+                    for rel in rels
+                    if rel.ingre_par.lemma == ingredient and rel.time
+                )
+            )
+        return question, answer
 
 
 if __name__ == "__main__":
@@ -260,11 +289,12 @@ if __name__ == "__main__":
     iq = ImplicitObjectQuestions()
     oq = ObjLifeSpanQuestions()
     eoq = EventOrderingQuestions()
+    tq = TemporalQuestions()
     print(cq.question_answer1("spatula", "TOOL"))
     print(cq.question_answer2("spatula", "TOOL"))
     print(cq.question_answer3("spatula", "TOOL"))
     print(cq.question_answer4("pancetta"))
-    print(eq.question_answer1("toss"))
+    print(eq.question_answer1("stir"))
     print(eq.question_answer2("saute", "spatula"))
     print(eq.question_answer3("add", "pan"))
     print(iq.question_answer1("sprinkle", "pasta"))
@@ -273,3 +303,6 @@ if __name__ == "__main__":
     print(oq.question_answer2("asparagus"))
     print(eoq.question_answer1(2, 6))
     print(eoq.question_answer1(7, 4))
+    print(tq.question_answer1("saute", "asparagus"))
+
+# TODO: note that the relations that have the same event_id from the relation table can have same ingre_par as their ingre_result is different
