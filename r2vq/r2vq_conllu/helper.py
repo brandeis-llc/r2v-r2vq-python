@@ -15,8 +15,6 @@ from r2vq_conllu.data import (
 
 def _decode_crl_bio(sentence: Sentence) -> List[Span]:
     full_labels = [tok.entity for tok in sentence.tokens]
-    if not all(full_labels):
-        return []
 
     labels = [
         label.split("-") if label and label is not "O" else ["O", "O"]
@@ -74,11 +72,12 @@ def _decode_srl_bio(sentence: Sentence) -> List[List[Argument]]:
     arguments = []
 
     for i, full_labels in enumerate([args1, args2, args3, args4, args5]):
-        if not any(full_labels):
-            continue
         pred_args = []
 
-        labels = [label.split("-", 1) if label else ["O", "O"] for label in full_labels]
+        labels = [
+            label.split("-", 1) if label and label is not "O" else ["O", "O"]
+            for label in full_labels
+        ]
         labels_len = len(labels)
 
         start_idx = 0
@@ -99,7 +98,8 @@ def _decode_srl_bio(sentence: Sentence) -> List[List[Argument]]:
                     )
                 )
                 start_idx = curr_idx
-        arguments.append(pred_args)
+        if pred_args:
+            arguments.append(pred_args)
     return arguments
 
 
@@ -194,7 +194,9 @@ def _get_cooking_events(
 def _parse_hidden_value(value: str) -> Optional[Dict[str, List[str]]]:
     hidden_dict = conllu.parser.parse_dict_value(value)
     if hidden_dict:
-        return {k: v.split(":") for k, v in hidden_dict.items() if v}
+        return {
+            k: [e.strip() for e in v.split(":")] for k, v in hidden_dict.items() if v
+        }
     return None
 
 
