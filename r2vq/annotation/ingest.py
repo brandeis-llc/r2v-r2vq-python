@@ -4,7 +4,7 @@ from typing import Sequence, List, Tuple
 import conllu
 from conllu import parse_incr
 
-from r2vq_conllu.data import (
+from r2vq.annotation.models import (
     Token,
     Recipe,
     Sentence,
@@ -15,7 +15,7 @@ from r2vq_conllu.data import (
     Predicate,
     CookingEvent,
 )
-from r2vq_conllu.helper import (
+from r2vq.annotation.helper import (
     _decode_hidden,
     _decode_crl_bio,
     _decode_srl_bio,

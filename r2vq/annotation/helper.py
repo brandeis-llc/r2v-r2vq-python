@@ -2,7 +2,7 @@ from typing import Optional, Dict, List
 
 import conllu
 
-from r2vq_conllu.data import (
+from r2vq.annotation.models import (
     Sentence,
     Span,
     Relation,
