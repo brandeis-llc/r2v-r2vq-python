@@ -11,5 +11,8 @@ setuptools.setup(
     install_requires=requires,
     python_requires='>=3.7',
     packages=['r2vq'],
+    package_data={
+        'r2vq': ['res/*'],
+    },
     entry_points={},
 )
