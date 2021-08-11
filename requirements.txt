@@ -1,0 +1,4 @@
+attr==0.3.1
+conllu==4.4.0
+peewee==3.14.4
+lemminflect==0.2.2
