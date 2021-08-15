@@ -31,25 +31,7 @@ STEP = "step"
 
 def ingest_r2vq_connlu(conllu_file: str) -> Tuple[List[Recipe], List[conllu.TokenList]]:
     # column names
-    r2vq_conllu_fields = [
-        "id",
-        "form",
-        "lemma",
-        "upos",
-        "entity",
-        "participant_of",
-        "result_of",
-        "hidden",
-        "coreference",
-        "predicate",
-        "arg_pred1",
-        "arg_pred2",
-        "arg_pred3",
-        "arg_pred4",
-        "arg_pred5",
-    ]
-
-    custom_parsers = {
+    custom_cols_and_parsers = {
         "entity": lambda line, i: conllu.parser.parse_nullable_value(line[i]),
         "participant_of": lambda line, i: conllu.parser.parse_int_value(line[i]),
         "result_of": lambda line, i: conllu.parser.parse_int_value(line[i]),
@@ -62,9 +44,11 @@ def ingest_r2vq_connlu(conllu_file: str) -> Tuple[List[Recipe], List[conllu.Toke
         "arg_pred4": lambda line, i: conllu.parser.parse_nullable_value(line[i]),
         "arg_pred5": lambda line, i: conllu.parser.parse_nullable_value(line[i]),
     }
+    r2vq_conllu_fields = conllu.parser.DEFAULT_FIELDS[:4] + list(custom_cols_and_parsers.keys())
+
     conllu_f = open(conllu_file, "r", encoding="utf-8")
     sentences = parse_incr(
-        conllu_f, fields=r2vq_conllu_fields, field_parsers=custom_parsers
+        conllu_f, fields=r2vq_conllu_fields, field_parsers=custom_cols_and_parsers
     )
 
     recipe_id = ""
@@ -147,7 +131,7 @@ def ingest_r2vq_connlu(conllu_file: str) -> Tuple[List[Recipe], List[conllu.Toke
     conllu_f.close()
     with open(conllu_file, "r", encoding="utf-8") as f:
         sentences = list(
-            parse_incr(f, fields=r2vq_conllu_fields, field_parsers=custom_parsers)
+            parse_incr(f, fields=r2vq_conllu_fields, field_parsers=custom_cols_and_parsers)
         )
     return recipes, sentences
 
