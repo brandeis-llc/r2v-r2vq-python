@@ -9,8 +9,8 @@ from r2vq.annotation.models import (
     Relation,
     Argument,
     Predicate,
-    CookingEvent,
-    EventVerb,
+    FullEvent,
+    Anchor,
 )
 
 
@@ -136,8 +136,38 @@ def _get_predicates(spans: List[List[Argument]]) -> List[Predicate]:
                 pred.extent = arg
             elif arg.label == "Purpose":
                 pred.purpose = arg
-            elif arg.label == "Co-Patient":
+            elif arg.label == "Co_Patient":
                 pred.co_patient = arg
+            elif arg.label == "Agent":
+                pred.agent = arg
+            elif arg.label == "Asset":
+                pred.asset = arg
+            elif arg.label == "Beneficiary":
+                pred.beneficiary = arg
+            elif arg.label == "Cause":
+                pred.cause = arg
+            elif arg.label == "Co_Agent":
+                pred.co_agent = arg
+            elif arg.label == "Co_Theme":
+                pred.co_theme = arg
+            elif arg.label == "Experiencer":
+                pred.experiencer = arg
+            elif arg.label == "Goal":
+                pred.goal = arg
+            elif arg.label == "Material":
+                pred.material = arg
+            elif arg.label == "Product":
+                pred.product = arg
+            elif arg.label == "Recipient":
+                pred.recipient = arg
+            elif arg.label == "Source":
+                pred.source = arg
+            elif arg.label == "Stimulus":
+                pred.stimulus = arg
+            elif arg.label == "Topic":
+                pred.topic = arg
+            elif arg.label == "Value":
+                pred.value = arg
         preds.append(pred)
     return preds
 
@@ -161,9 +191,9 @@ def _get_relations(spans: List[Span]) -> List[Relation]:
     return list(events_mapping.values())
 
 
-def _get_cooking_events(
+def _get_full_events(
     sent: Sentence, rels: List[Relation], preds: List[Predicate]
-) -> List[CookingEvent]:
+) -> List[FullEvent]:
     c_events = []
     rels_dict = {rel.event.id.rsplit(sep, 1)[0]: rel for rel in rels}
     pred_dict = {pred.head.id.rsplit(sep, 2)[0]: pred for pred in preds}
@@ -171,24 +201,22 @@ def _get_cooking_events(
         tok_id = sep.join([sent.id, str(i).zfill(3)])
         if tok.entity == "B-EVENT" and tok.predicate:
             verb = rels_dict[tok_id].event
-            verb_obj = EventVerb(
+            verb_obj = Anchor(
                 tok_id, verb.sent, verb.start_pos, verb.end_pos, verb.text, verb.lemma
             )
-            c_events.append(
-                CookingEvent(verb_obj, pred_dict[tok_id], rels_dict[tok_id])
-            )
+            c_events.append(FullEvent(verb_obj, pred_dict[tok_id], rels_dict[tok_id]))
         elif tok.entity == "B-EVENT":
             verb = rels_dict[tok_id].event
-            verb_obj = EventVerb(
+            verb_obj = Anchor(
                 tok_id, verb.sent, verb.start_pos, verb.end_pos, verb.text, verb.lemma
             )
-            c_events.append(CookingEvent(verb_obj, None, rels_dict[tok_id]))
+            c_events.append(FullEvent(verb_obj, None, rels_dict[tok_id]))
         elif tok.predicate:
             verb = pred_dict[tok_id].head
-            verb_obj = EventVerb(
+            verb_obj = Anchor(
                 tok_id, verb.sent, verb.start_pos, verb.end_pos, verb.text, verb.lemma
             )
-            c_events.append(CookingEvent(verb_obj, pred_dict[tok_id], None))
+            c_events.append(FullEvent(verb_obj, pred_dict[tok_id], None))
     return c_events
 
 

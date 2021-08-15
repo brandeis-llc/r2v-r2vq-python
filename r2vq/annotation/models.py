@@ -245,6 +245,21 @@ class Predicate:
     _extent: Argument = attr.ib(default=None)
     _purpose: Argument = attr.ib(default=None)
     _co_patient: Argument = attr.ib(default=None)
+    _agent: Argument = attr.ib(default=None)
+    _asset: Argument = attr.ib(default=None)
+    _beneficiary: Argument = attr.ib(default=None)
+    _cause: Argument = attr.ib(default=None)
+    _co_agent: Argument = attr.ib(default=None)
+    _co_theme: Argument = attr.ib(default=None)
+    _experiencer: Argument = attr.ib(default=None)
+    _goal: Argument = attr.ib(default=None)
+    _material: Argument = attr.ib(default=None)
+    _product: Argument = attr.ib(default=None)
+    _recipient: Argument = attr.ib(default=None)
+    _source: Argument = attr.ib(default=None)
+    _stimulus: Argument = attr.ib(default=None)
+    _topic: Argument = attr.ib(default=None)
+    _value: Argument = attr.ib(default=None)
 
     def __repr__(self):
         head = f"{self.head}[{self.sense}]"
@@ -347,6 +362,126 @@ class Predicate:
     def co_patient(self, value: Argument):
         self._co_patient = value
 
+    @property
+    def agent(self):
+        return self._agent
+
+    @agent.setter
+    def agent(self, value: Argument):
+        self._agent = value
+
+    @property
+    def asset(self):
+        return self._asset
+
+    @asset.setter
+    def asset(self, value: Argument):
+        self._asset = value
+
+    @property
+    def beneficiary(self):
+        return self._beneficiary
+
+    @beneficiary.setter
+    def beneficiary(self, value: Argument):
+        self._beneficiary = value
+
+    @property
+    def cause(self):
+        return self._cause
+
+    @cause.setter
+    def cause(self, value: Argument):
+        self._cause = value
+
+    @property
+    def co_agent(self):
+        return self._co_agent
+
+    @co_agent.setter
+    def co_agent(self, value: Argument):
+        self._co_agent = value
+
+    @property
+    def co_theme(self):
+        return self._co_theme
+
+    @co_theme.setter
+    def co_theme(self, value: Argument):
+        self._co_theme = value
+
+    @property
+    def experiencer(self):
+        return self._experiencer
+
+    @experiencer.setter
+    def experiencer(self, value: Argument):
+        self._experiencer = value
+
+    @property
+    def goal(self):
+        return self._goal
+
+    @goal.setter
+    def goal(self, value: Argument):
+        self._goal = value
+
+    @property
+    def material(self):
+        return self._material
+
+    @material.setter
+    def material(self, value: Argument):
+        self._material = value
+
+    @property
+    def product(self):
+        return self._product
+
+    @product.setter
+    def product(self, value: Argument):
+        self._product = value
+
+    @property
+    def recipient(self):
+        return self._recipient
+
+    @recipient.setter
+    def recipient(self, value: Argument):
+        self._recipient = value
+
+    @property
+    def source(self):
+        return self._source
+
+    @source.setter
+    def source(self, value: Argument):
+        self._source = value
+
+    @property
+    def stimulus(self):
+        return self._stimulus
+
+    @stimulus.setter
+    def stimulus(self, value: Argument):
+        self._stimulus = value
+
+    @property
+    def topic(self):
+        return self._topic
+
+    @topic.setter
+    def topic(self, value: Argument):
+        self._topic = value
+
+    @property
+    def value(self):
+        return self._value
+
+    @value.setter
+    def value(self, value: Argument):
+        self._value = value
+
 
 @attr.s(frozen=False, repr=False)
 class Relation:
@@ -395,11 +530,11 @@ class Relation:
         self._ingre_results.append(value)
 
     def __repr__(self):
-        return f"{(self.ingre_participants, self.tool_participants, self.habitat_participants)}->{self.event.text}->{self.ingre_results}"
+        return f"{self.event.text}->{(self.ingre_participants, self.tool_participants, self.habitat_participants)}->{self.ingre_results}"
 
 
 @attr.s(frozen=True, repr=False)
-class EventVerb:
+class Anchor:
     # verb head of a cooking event
     id: str = attr.ib()
     sent: Sentence = attr.ib()
@@ -412,12 +547,15 @@ class EventVerb:
         return self.text
 
 
-@attr.s(frozen=False, repr=True)
-class CookingEvent:
+@attr.s(frozen=False, repr=False)
+class FullEvent:
     # cooking event dataclass, it consists of the verb head, CRL relation and SRL predicate
-    verb: EventVerb = attr.ib()
+    verb: Anchor = attr.ib()
     predicate: Optional[Predicate] = attr.ib()
     relation: Optional[Relation] = attr.ib()
+
+    def __repr__(self):
+        return "\n".join([f"SRL: {self.predicate}", f"CRL: {self.relation}"])
 
 
 @attr.s(frozen=True, repr=False)
@@ -440,7 +578,7 @@ class Recipe:
     relations: List[Relation] = attr.ib()
     arguments: List[Argument] = attr.ib()
     predicates: List[Predicate] = attr.ib()
-    cooking_events: List[CookingEvent] = attr.ib()
+    full_events: List[FullEvent] = attr.ib()
 
     def __getitem__(self, item: int):
         return self.sentences[item]
