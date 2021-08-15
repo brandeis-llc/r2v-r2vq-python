@@ -116,6 +116,7 @@ class Span:
     sent: Sentence = attr.ib()
     start_pos: int = attr.ib(converter=int)
     end_pos: int = attr.ib(converter=int)
+    head_pos: int = attr.ib(converter=int)
     label: str = attr.ib()
     text: str = attr.ib()
     coref_id: Optional[Sequence[int]] = attr.ib()
@@ -136,8 +137,10 @@ class Span:
             # split on the first dot only to separate co-referred entity, e.g. "pancetta_grease.1.1.5"
             _, coref_str = sent[start].coreference.split(".", 1)
             coref_id = list(map(int, coref_str.split('.')))
+            head = coref_id[-1]
         else:
             coref_id = None
+            head = start
 
         participant_of: Optional[int] = sent[start].participant_of
         result_of: Optional[int] = sent[start].result_of
@@ -147,7 +150,7 @@ class Span:
         if result_of:
             result_of -= 1
         return cls(
-            span_id, sent, start, end, label, text, coref_id, participant_of, result_of
+            span_id, sent, start, end, head, label, text, coref_id, participant_of, result_of
         )
 
     @classmethod
