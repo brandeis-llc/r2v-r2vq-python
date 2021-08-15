@@ -1,6 +1,6 @@
 import re
-from typing import Optional, Dict, List, Union
 from importlib import resources
+from typing import Optional, Dict, List, Union, Sequence
 
 import attr
 from attr import validators, converters
@@ -114,13 +114,11 @@ class Span:
     # CRL entity dataclass
     id: str = attr.ib()
     sent: Sentence = attr.ib()
-    start_pos: int = attr.ib()
-    end_pos: int = attr.ib()
+    start_pos: int = attr.ib(converter=int)
+    end_pos: int = attr.ib(converter=int)
     label: str = attr.ib()
     text: str = attr.ib()
-    coref_id: Optional[int] = attr.ib(
-        validator=validators.optional(validators.instance_of(int))
-    )
+    coref_id: Optional[Sequence[int]] = attr.ib()
     participant_of: Optional[int] = attr.ib()
     result_of: Optional[int] = attr.ib()
 
@@ -137,7 +135,7 @@ class Span:
         if sent[start].coreference:
             # split on the first dot only to separate co-referred entity, e.g. "pancetta_grease.1.1.5"
             _, coref_str = sent[start].coreference.split(".", 1)
-            coref_id: Optional[int] = int(coref_str.replace(".", ""))
+            coref_id = list(map(int, coref_str.split('.')))
         else:
             coref_id = None
 
@@ -168,19 +166,16 @@ class Span:
             "Habitat": "HIDDENHABITAT",
         }
         label = key_mapping[key]
-        try:
-            # split on the first dot only to separate coreferred entity, e.g. "pancetta_grease.1.1.5"
-            text, coref_str = value.split(".", 1)
-            coref_id: Optional[int] = int(coref_str.replace(".", ""))
-        except ValueError:
-            text, coref_id = value, None
+        # split on the first dot only to separate coreferred entity, e.g. "pancetta_grease.1.1.5"
+        text, coref_str = value.split(".", 1)
+        coref_id = list(map(int, coref_str.split(".")))
         # replace "_" with a space, e.g. "pancetta_grease"
-        text = text.replace("_", " ")
+        # text = text.replace("_", " ")
 
         if label == "RESULTINGREDIENT":
-            return cls(span_id, sent, -1, -1, label, text, coref_id, None, tok_idx)
+            return cls(span_id, sent, -1, -1, -1, label, text, coref_id, None, tok_idx)
         else:
-            return cls(span_id, sent, -1, -1, label, text, coref_id, tok_idx, None)
+            return cls(span_id, sent, -1, -1, -1, label, text, coref_id, tok_idx, None)
 
     @property
     def lemma(self):

@@ -44,7 +44,7 @@ def ingest_r2vq_connlu(conllu_file: str) -> Tuple[List[Recipe], List[conllu.Toke
         "arg_pred4": lambda line, i: conllu.parser.parse_nullable_value(line[i]),
         "arg_pred5": lambda line, i: conllu.parser.parse_nullable_value(line[i]),
     }
-    r2vq_conllu_fields = conllu.parser.DEFAULT_FIELDS[:4] + list(custom_cols_and_parsers.keys())
+    r2vq_conllu_fields = list(conllu.parser.DEFAULT_FIELDS[:4]) + list(custom_cols_and_parsers.keys())
 
     conllu_f = open(conllu_file, "r", encoding="utf-8")
     sentences = parse_incr(
