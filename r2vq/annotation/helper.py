@@ -1,4 +1,5 @@
 from typing import Optional, Dict, List
+from r2vq.annotation import sep
 
 import conllu
 
@@ -31,7 +32,7 @@ def _decode_crl_bio(sentence: Sentence) -> List[Span]:
             curr_idx = idx + 1
             spans.append(
                 Span.from_entity(
-                    "::".join([sentence.id, str(start_idx).zfill(3), "CRL"]),
+                    sep.join([sentence.id, str(start_idx).zfill(3), "CRL"]),
                     sentence,
                     start_idx,
                     idx + 1,
@@ -49,7 +50,7 @@ def _decode_hidden(sentence: Sentence) -> List[Span]:
         if hidden:
             for k in hidden:
                 for hi, v in enumerate(hidden[k]):
-                    span_id = "::".join(
+                    span_id = sep.join(
                         [
                             sentence.id,
                             "hidden",
@@ -88,7 +89,7 @@ def _decode_srl_bio(sentence: Sentence) -> List[List[Argument]]:
                 curr_idx = idx + 1
                 pred_args.append(
                     Argument.from_arguments(
-                        "::".join(
+                        sep.join(
                             [sentence.id, str(start_idx).zfill(3), "SRL", str(i)]
                         ),
                         sentence,
@@ -164,10 +165,10 @@ def _get_cooking_events(
     sent: Sentence, rels: List[Relation], preds: List[Predicate]
 ) -> List[CookingEvent]:
     c_events = []
-    rels_dict = {rel.event.id.rsplit("::", 1)[0]: rel for rel in rels}
-    pred_dict = {pred.head.id.rsplit("::", 2)[0]: pred for pred in preds}
+    rels_dict = {rel.event.id.rsplit(sep, 1)[0]: rel for rel in rels}
+    pred_dict = {pred.head.id.rsplit(sep, 2)[0]: pred for pred in preds}
     for i, tok in enumerate(sent.tokens):
-        tok_id = "::".join([sent.id, str(i).zfill(3)])
+        tok_id = sep.join([sent.id, str(i).zfill(3)])
         if tok.entity == "B-EVENT" and tok.predicate:
             verb = rels_dict[tok_id].event
             verb_obj = EventVerb(
