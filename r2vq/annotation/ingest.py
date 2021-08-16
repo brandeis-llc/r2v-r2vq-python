@@ -13,7 +13,7 @@ from r2vq.annotation.models import (
     Relation,
     Argument,
     Predicate,
-    CookingEvent,
+    FullEvent,
 )
 from r2vq.annotation.helper import (
     _decode_hidden,
@@ -21,7 +21,7 @@ from r2vq.annotation.helper import (
     _decode_srl_bio,
     _get_relations,
     _get_predicates,
-    _get_cooking_events,
+    _get_full_events,
     _parse_hidden_value,
 )
 
@@ -58,7 +58,7 @@ def ingest_r2vq_connlu(conllu_file: str) -> Tuple[List[Recipe], List[conllu.Toke
     recipe_relations: List[Relation] = []
     recipe_arguments: List[Argument] = []
     recipe_predicates: List[Predicate] = []
-    recipe_cooking_events: List[CookingEvent] = []
+    recipe_full_events: List[FullEvent] = []
 
     recipes: List[Recipe] = []
 
@@ -75,7 +75,7 @@ def ingest_r2vq_connlu(conllu_file: str) -> Tuple[List[Recipe], List[conllu.Toke
                         recipe_relations,
                         recipe_arguments,
                         recipe_predicates,
-                        recipe_cooking_events,
+                        recipe_full_events,
                     )
                 )
                 recipe_sents = []
@@ -84,7 +84,7 @@ def ingest_r2vq_connlu(conllu_file: str) -> Tuple[List[Recipe], List[conllu.Toke
                 recipe_relations = []
                 recipe_arguments = []
                 recipe_predicates = []
-                recipe_cooking_events = []
+                recipe_full_events = []
             recipe_id = sent.metadata["newdoc id"]
         # get sentence meta and tokens
         sent_id = sent.metadata["sent_id"]
@@ -108,8 +108,8 @@ def ingest_r2vq_connlu(conllu_file: str) -> Tuple[List[Recipe], List[conllu.Toke
             recipe_arguments.extend(list(itertools.chain.from_iterable(args)))
             preds = _get_predicates(_decode_srl_bio(sentence))
             recipe_predicates.extend(preds)
-            cooking_events = _get_cooking_events(sentence, rels, preds)
-            recipe_cooking_events.extend(cooking_events)
+            full_events = _get_full_events(sentence, rels, preds)
+            recipe_full_events.extend(full_events)
 
         else:
             print(f"cannot identify sent_id: {sent_id}")
@@ -125,7 +125,7 @@ def ingest_r2vq_connlu(conllu_file: str) -> Tuple[List[Recipe], List[conllu.Toke
                 recipe_relations,
                 recipe_arguments,
                 recipe_predicates,
-                recipe_cooking_events,
+                recipe_full_events,
             )
         )
     conllu_f.close()
@@ -148,7 +148,7 @@ def write_r2vq_conllu(
 
 
 def test_recipe(recipe: Recipe) -> None:
-    events = recipe.cooking_events
+    events = recipe.full_events
     for e in events:
         print(e.predicate)
         print(e.relation)
@@ -157,6 +157,6 @@ def test_recipe(recipe: Recipe) -> None:
 
 if __name__ == "__main__":
     recipes, sentences = ingest_r2vq_connlu(
-        "../r2vq_conllu_data/trial_all_formatted_corrected.csv"
+        "trial_all_formatted_corrected.csv"
     )
     test_recipe(recipes[0])
