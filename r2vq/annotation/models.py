@@ -119,7 +119,7 @@ class Span:
     head_pos: int = attr.ib(converter=int)
     label: str = attr.ib()
     text: str = attr.ib()
-    coref_id: Optional[Sequence[int]] = attr.ib()
+    coref_id: str = attr.ib()
     participant_of: Optional[int] = attr.ib()
     result_of: Optional[int] = attr.ib()
 
@@ -134,13 +134,10 @@ class Span:
         text = " ".join([tok.form for tok in sent[start:end]])
 
         if sent[start].coreference:
-            # split on the first dot only to separate co-referred entity, e.g. "pancetta_grease.1.1.5"
-            _, coref_str = sent[start].coreference.split(".", 1)
-            coref_id = list(map(int, coref_str.split('.')))
-            head = coref_id[-1]
+            coref_id = sent[start].coreference
         else:
             coref_id = None
-            head = start
+        head = start
 
         participant_of: Optional[int] = sent[start].participant_of
         result_of: Optional[int] = sent[start].result_of
@@ -170,10 +167,10 @@ class Span:
         }
         label = key_mapping[key]
         # split on the first dot only to separate coreferred entity, e.g. "pancetta_grease.1.1.5"
-        text, coref_str = value.split(".", 1)
-        coref_id = list(map(int, coref_str.split(".")))
+        text, _ = value.split(".", 1)
+        coref_id = value
         # replace "_" with a space, e.g. "pancetta_grease"
-        # text = text.replace("_", " ")
+        text = text.replace("_", " ")
 
         if label == "RESULTINGREDIENT":
             return cls(span_id, sent, -1, -1, -1, label, text, coref_id, None, tok_idx)
