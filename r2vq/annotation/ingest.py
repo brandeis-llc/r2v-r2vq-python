@@ -156,7 +156,10 @@ def test_recipe(recipe: Recipe) -> None:
 
 
 if __name__ == "__main__":
-    recipes, sentences = ingest_r2vq_connlu(
-        "trial_all_formatted_corrected.csv"
-    )
+    import sys
+    if len(sys.argv) > 1:
+        fname = sys.argv[1]
+    else:
+        fname = "trial_all_formatted_corrected.csv"
+    recipes, sentences = ingest_r2vq_connlu(fname)
     test_recipe(recipes[0])
