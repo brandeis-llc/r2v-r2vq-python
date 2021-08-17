@@ -1,6 +1,7 @@
 import re
 from importlib import resources
 from typing import Optional, Dict, List, Union, Sequence
+from r2vq.annotation import sep
 
 import attr
 from attr import validators, converters
@@ -136,7 +137,9 @@ class Span:
         if sent[start].coreference:
             coref_id = sent[start].coreference
         else:
-            coref_id = None
+            rid, sent_nums = sent.id.split(sep, 1)
+            step_num, sent_num = list(map(lambda x: str(int(x[4:])), sent_nums.split(sep)))
+            coref_id = '.'.join((text.lower().replace(' ', '_'), step_num, sent_num, str(start + 1)))
         head = start
 
         participant_of: Optional[int] = sent[start].participant_of
