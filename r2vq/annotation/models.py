@@ -43,47 +43,47 @@ crl_hidden_validator = validators.optional(
 )
 
 
-@attr.s(frozen=True, repr=False)
+@attr.s(frozen=False, repr=False)
 class Token:
     # token line dataclass, it contains the original values for the CoNLL-U file
 
     # meta fields
     id: str = attr.ib()
     form: str = attr.ib()
-    lemma: str = attr.ib()
-    upos: str = attr.ib()
+    lemma: Optional[str] = attr.ib(default=None)
+    upos: Optional[str] = attr.ib(default=None)
 
     # CRL fields
     entity: Optional[str] = attr.ib(
-        validator=crl_entity_validator, converter=converters.default_if_none("O")
+        validator=crl_entity_validator, converter=converters.default_if_none("O"), default=None
     )
     participant_of: Optional[int] = attr.ib(
-        validator=validators.optional(validators.instance_of(int))
+        validator=validators.optional(validators.instance_of(int)), default=None
     )
     result_of: Optional[int] = attr.ib(
-        validator=validators.optional(validators.instance_of(int))
+        validator=validators.optional(validators.instance_of(int)), default=None
     )
-    hidden: Optional[Dict[str, List[str]]] = attr.ib(validator=crl_hidden_validator)
-    coreference: Optional[str] = attr.ib(validator=crl_coref_validator)
+    hidden: Optional[Dict[str, List[str]]] = attr.ib(validator=crl_hidden_validator, default=None)
+    coreference: Optional[str] = attr.ib(validator=crl_coref_validator, default=None)
 
     # SRL fields
     predicate: Optional[str] = attr.ib(
-        validator=validators.optional(validators.in_(SRL_PRED_SENSES))
+        validator=validators.optional(validators.in_(SRL_PRED_SENSES)), default=None
     )
     arg_pred1: Optional[str] = attr.ib(
-        validator=srl_argument_validator, converter=converters.default_if_none("O")
+        validator=srl_argument_validator, converter=converters.default_if_none("O"), default=None
     )
     arg_pred2: Optional[str] = attr.ib(
-        validator=srl_argument_validator, converter=converters.default_if_none("O")
+        validator=srl_argument_validator, converter=converters.default_if_none("O"), default=None
     )
     arg_pred3: Optional[str] = attr.ib(
-        validator=srl_argument_validator, converter=converters.default_if_none("O")
+        validator=srl_argument_validator, converter=converters.default_if_none("O"), default=None
     )
     arg_pred4: Optional[str] = attr.ib(
-        validator=srl_argument_validator, converter=converters.default_if_none("O")
+        validator=srl_argument_validator, converter=converters.default_if_none("O"), default=None
     )
     arg_pred5: Optional[str] = attr.ib(
-        validator=srl_argument_validator, converter=converters.default_if_none("O")
+        validator=srl_argument_validator, converter=converters.default_if_none("O"), default=None
     )
 
     def __repr__(self):
