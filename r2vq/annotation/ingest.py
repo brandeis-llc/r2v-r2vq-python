@@ -29,20 +29,27 @@ INGREDIENT = "ingredients"
 STEP = "step"
 
 
+def _parse_nullable_int_value(value: str):
+    if not value or value == "_":
+        return None
+
+    return int(value)
+
+
 def ingest_r2vq_connlu(conllu_file: str) -> Tuple[List[Recipe], List[conllu.TokenList]]:
     # column names
     custom_cols_and_parsers = {
-        "entity": lambda line, i: conllu.parser.parse_nullable_value(line[i]),
-        "participant_of": lambda line, i: conllu.parser.parse_int_value(line[i]),
-        "result_of": lambda line, i: conllu.parser.parse_int_value(line[i]),
-        "hidden": lambda line, i: _parse_hidden_value(line[i]),
-        "coreference": lambda line, i: conllu.parser.parse_nullable_value(line[i]),
-        "predicate": lambda line, i: conllu.parser.parse_nullable_value(line[i]),
-        "arg_pred1": lambda line, i: conllu.parser.parse_nullable_value(line[i]),
-        "arg_pred2": lambda line, i: conllu.parser.parse_nullable_value(line[i]),
-        "arg_pred3": lambda line, i: conllu.parser.parse_nullable_value(line[i]),
-        "arg_pred4": lambda line, i: conllu.parser.parse_nullable_value(line[i]),
-        "arg_pred5": lambda line, i: conllu.parser.parse_nullable_value(line[i]),
+        "entity": lambda line, i: conllu.parser.parse_nullable_value(line[i]),      # col E
+        "participant_of": lambda line, i: _parse_nullable_int_value(line[i]),       # col F
+        "result_of": lambda line, i: _parse_nullable_int_value(line[i]),            # col G
+        "hidden": lambda line, i: _parse_hidden_value(line[i]),                     # col H
+        "coreference": lambda line, i: conllu.parser.parse_nullable_value(line[i]), # col I
+        "predicate": lambda line, i: conllu.parser.parse_nullable_value(line[i]),   # col J
+        "arg_pred1": lambda line, i: conllu.parser.parse_nullable_value(line[i]),   # col K
+        "arg_pred2": lambda line, i: conllu.parser.parse_nullable_value(line[i]),   # col L
+        "arg_pred3": lambda line, i: conllu.parser.parse_nullable_value(line[i]),   # col M
+        "arg_pred4": lambda line, i: conllu.parser.parse_nullable_value(line[i]),   # col N
+        "arg_pred5": lambda line, i: conllu.parser.parse_nullable_value(line[i]),   # col O
     }
     r2vq_conllu_fields = list(conllu.parser.DEFAULT_FIELDS[:4]) + list(custom_cols_and_parsers.keys())
 
