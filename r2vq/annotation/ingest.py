@@ -72,7 +72,7 @@ def ingest_r2vq_connlu(conllu_file: str) -> Tuple[List[Recipe], List[conllu.Toke
     for sent in sentences:
         if sent.metadata.get("newdoc id"):
             # start of a new recipe
-            if recipe_id and recipe_sents and recipe_ingres:
+            if recipe_id and recipe_sents and recipe_ingres is not None:
                 recipes.append(
                     Recipe(
                         recipe_id,
@@ -93,6 +93,9 @@ def ingest_r2vq_connlu(conllu_file: str) -> Tuple[List[Recipe], List[conllu.Toke
                 recipe_predicates = []
                 recipe_full_events = []
             recipe_id = sent.metadata["newdoc id"]
+        # don't do anything on ingredients list
+        if 'sent_id' not in sent.metadata or INGREDIENT in sent.metadata['sent_id']:
+            continue
         # get sentence meta and tokens
         sent_id = sent.metadata["sent_id"]
         text = sent.metadata["text"]
@@ -122,7 +125,7 @@ def ingest_r2vq_connlu(conllu_file: str) -> Tuple[List[Recipe], List[conllu.Toke
             print(f"cannot identify sent_id: {sent_id}")
 
     # consume the last recipe
-    if recipe_id and recipe_sents and recipe_ingres:
+    if recipe_id and recipe_sents and recipe_ingres is not None:
         recipes.append(
             Recipe(
                 recipe_id,
