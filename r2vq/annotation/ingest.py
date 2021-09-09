@@ -76,6 +76,7 @@ def ingest_r2vq_connlu(conllu_file: str) -> Tuple[List[Recipe], List[conllu.Toke
                 recipes.append(
                     Recipe(
                         recipe_id,
+                        recipe_url,
                         recipe_ingres,
                         recipe_sents,
                         recipe_spans,
@@ -93,6 +94,7 @@ def ingest_r2vq_connlu(conllu_file: str) -> Tuple[List[Recipe], List[conllu.Toke
                 recipe_predicates = []
                 recipe_full_events = []
             recipe_id = sent.metadata["newdoc id"]
+            recipe_url = sent.metadata["metadata:url"]
         # don't do anything on ingredients list
         if 'sent_id' not in sent.metadata or INGREDIENT in sent.metadata['sent_id']:
             continue
@@ -129,6 +131,7 @@ def ingest_r2vq_connlu(conllu_file: str) -> Tuple[List[Recipe], List[conllu.Toke
         recipes.append(
             Recipe(
                 recipe_id,
+                recipe_url,
                 recipe_ingres,
                 recipe_sents,
                 recipe_spans,

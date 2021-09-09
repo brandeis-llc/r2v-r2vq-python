@@ -570,6 +570,7 @@ class Ingredient:
 @attr.s(frozen=True)
 class Recipe:
     r_id: str = attr.ib()
+    url: str = attr.ib()
     ingredients: List[Ingredient] = attr.ib()
     sentences: List[Sentence] = attr.ib()
     spans: List[Span] = attr.ib()
