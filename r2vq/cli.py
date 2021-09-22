@@ -19,10 +19,10 @@ def cli():
         help='input CoNLL-U CSV file'
     )
     parser.add_argument(
-        '-e', '--extract',
+        '-s', '--subset',
         action='store',
         nargs='+',
-        help='recipe IDs to extract'
+        help='recipe IDs to form a new subset'
     )
     parser.add_argument(
         '-o', '--output',
@@ -32,9 +32,9 @@ def cli():
         help='output path, defaults to STDOUT if not given'
     )
     args = parser.parse_args()
-    if args.extract:
+    if args.subset:
         import r2vq.dataset
-        r2vq.dataset.extract(dataset_fname=args.input, out_fname=args.output, recipe_ids=args.extract)
+        r2vq.dataset.subset(dataset_fname=args.input, out_fname=args.output, recipe_ids=args.subset)
 
 if __name__ == '__main__':
     cli()

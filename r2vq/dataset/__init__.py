@@ -1,7 +1,7 @@
 import sys
 
 
-def extract(dataset_fname, out_fname, recipe_ids):
+def subset(dataset_fname, out_fname, recipe_ids):
     write = False
     dataset_f = open(dataset_fname, 'r', encoding='utf8')
     if out_fname and len(out_fname) > 0:
