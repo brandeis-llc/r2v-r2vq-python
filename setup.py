@@ -14,5 +14,10 @@ setuptools.setup(
     package_data={
         'r2vq': ['res/*'],
     },
-    entry_points={},
+    entry_points={
+        'console_scripts': [
+            'r2vq = r2vq.cli:cli',
+        ],
+    },
+
 )
