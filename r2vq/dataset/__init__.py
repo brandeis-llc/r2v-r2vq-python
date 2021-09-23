@@ -2,6 +2,8 @@ import sys
 
 
 def subset(dataset_fname, out_fname, recipe_ids):
+    if isinstance(recipe_ids, str):
+        recipe_ids = [recipe_ids]
     write = False
     dataset_f = open(dataset_fname, 'r', encoding='utf8')
     if out_fname and len(out_fname) > 0:
